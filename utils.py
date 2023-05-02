@@ -101,11 +101,17 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,BATCH_SIZE = 10
     loss.backward()
     optimizer.step()
 
-def get_data():
+def get_data(drive_path = False):
     '''
     get all historical returns data
+
+    if drive_path is Fasle, read data from relative path
+    else read from specific google drive location
     '''
-    path = r'dataset'
+    if drive_path == False:
+        path = r'dataset'
+    else:
+        path = drive_path
     all_files = glob.glob(path + "/*.csv")
     print(all_files)
     li = []
