@@ -54,7 +54,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-def optimize_model(memory,optimizer,policy_net,target_net,device,BATCH_SIZE = 1024, GAMMA = 0.9, dueling = False):
+def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH_SIZE = 1024, GAMMA = 0.9, dueling = False):
     '''
     Optimize the model for one iteration
 
@@ -65,9 +65,10 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,BATCH_SIZE = 10
     3.policy_net
     4.target_net
     5.device: cpu or gpu
-    6.BATCH_SIZE: pre-defined batch size, default 1024
-    7.GAMMA: pre-defiend discount factor, default 0.9
-    8.dueling: whether or not the network uses a dueling structure, default FALSE
+    6.criterion: loss function to use
+    7.BATCH_SIZE: pre-defined batch size, default 1024
+    8.GAMMA: pre-defiend discount factor, default 0.9
+    9.dueling: whether or not the network uses a dueling structure, default FALSE
     '''
 
     if len(memory) > BATCH_SIZE:
@@ -93,7 +94,6 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,BATCH_SIZE = 10
             next_state_values = target_net(next_state_batch).max(1)[0]
 
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
-    criterion = nn.SmoothL1Loss()
     loss = criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 
     # Optimize the model
@@ -123,6 +123,7 @@ def get_data(drive_path = False):
     df = pd.concat(li, axis=0, ignore_index=True)
     df['Date'] = pd.to_datetime(df['Date'])
     df['Close'] = df['Close'].str.replace(',','').astype(float)
+    df.set_index('Date',inplace=True)
     prices = df.sort_values(by = 'Date')
     returns = prices['Close'].pct_change()[1:]
     return returns
