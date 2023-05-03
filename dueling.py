@@ -29,5 +29,10 @@ class DuelingDQN(nn.Module):
         value = self.value_layer(features)
 
         # Combine the advantage and value streams.
-        q_values = value + (advantage - advantage.mean(dim=1, keepdim=True))
+        try:
+          q_values = value + (advantage - advantage.mean(dim=1, keepdim=True))
+        except:
+          q_values = value + (advantage - advantage.mean(dim=0, keepdim=True))
+          
+        return q_values
         return q_values

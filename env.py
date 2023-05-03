@@ -1,5 +1,6 @@
 import gym
 import numpy as np
+import pywt
 
 class StockTradingEnv(gym.Env):
     '''
@@ -14,7 +15,11 @@ class StockTradingEnv(gym.Env):
 
         self.returns = stock_returns
         self.current_step = 5
-        self.current_state = np.array([stock_returns[0],stock_returns[4]])
+        self.position = 0
+        try:
+          self.current_state = self._get_next_state()
+        except:
+          pass
 
         # Action space: {0: 'short', 1: 'stay', 2: 'long'}
         self.action_space = gym.spaces.Discrete(3)
@@ -22,8 +27,6 @@ class StockTradingEnv(gym.Env):
         # State space: [1-day return, 5-day return]
         self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32)
 
-        #position
-        self.posiiton = 0
 
     def _get_next_state(self):
       '''
