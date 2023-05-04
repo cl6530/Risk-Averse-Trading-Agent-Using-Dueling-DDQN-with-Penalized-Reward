@@ -59,8 +59,6 @@ class StockTradingEnv(gym.Env):
       2. calculate next state
       3. get reward from state transition (one day return)
       4. return a transition tuple
-
-      
       '''
       assert self.action_space.contains(action), f"{action} is an invalid action"
 
@@ -81,11 +79,11 @@ class StockTradingEnv(gym.Env):
       next_state = self._get_next_state()
       self.current_state = next_state
 
-      #reward
-      reward = self._get_reward()
-
       # Update the current step
       self.current_step += 1
+
+      #reward
+      reward = self._get_reward()
 
       # Check if the episode is done (reached the end of the stock prices data)
       done = self.current_step >= len(self.returns) - 1
