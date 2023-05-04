@@ -7,7 +7,7 @@ import pandas as pd
 from collections import namedtuple, deque
 
 
-def select_action(state,epsilon,action_space,policy_net,device,dueling = False):
+def select_action(state,epsilon,action_space,policy_net,device):
     '''
     Choose action based on epsilon-greedy policy
     Params
@@ -53,7 +53,7 @@ class ReplayMemory(object):
     def __len__(self):
         return len(self.memory)
 
-def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH_SIZE = 1024, GAMMA = 0.9, dueling = False):
+def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH_SIZE = 1024, GAMMA = 0.9):
     '''
     Optimize the model for one iteration
 
@@ -86,16 +86,12 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH
 
     next_state_values = torch.zeros(len(next_state_batch), device=device)
     with torch.no_grad():
-        if dueling:
-            raise NotImplementedError()
-            # FIXME: When using dueling structure, this need to be changed
-        else:
-            next_state_values = target_net(next_state_batch).max(1)[0]
+        next_state_values = target_net(next_state_batch).max(1)[0]
 
 
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
     loss = criterion(state_action_values.float(), expected_state_action_values.unsqueeze(1).float())
-    
+
     # Optimize the model
     optimizer.zero_grad()
     loss.backward()
