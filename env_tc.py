@@ -77,8 +77,8 @@ class StockTradingEnv(gym.Env):
       if action == 0:  # short
           self.position = -1
           self.current_step += 1
-          self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
-          reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
+          self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) * (1 - self.transaction_cost)
+          reward = self.current_portfolio - self.init_port 
       elif action == 1:  # stay
           self.position = 0
           self.current_step += 1
@@ -86,9 +86,8 @@ class StockTradingEnv(gym.Env):
       elif action == 2:  # long
           self.position = 1
           self.current_step += 1
-          self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
-          reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
-
+          self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) * (1 - self.transaction_cost)
+          reward = self.current_portfolio - self.init_port 
       #next_state
       next_state = self._get_next_state()
       self.current_state = next_state
