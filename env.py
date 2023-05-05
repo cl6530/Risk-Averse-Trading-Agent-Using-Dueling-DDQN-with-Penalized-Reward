@@ -14,7 +14,7 @@ class StockTradingEnv(gym.Env):
         super(StockTradingEnv, self).__init__()
 
         self.returns = stock_returns
-        self.current_step = 5
+        self.current_step = 4
         self.position = 0
         try:
           self.current_state = self._get_next_state()
@@ -33,7 +33,7 @@ class StockTradingEnv(gym.Env):
       using 1-day and 5-day return as the next state
       '''
       one_day_return = self.returns[self.current_step]
-      five_day_return = self.returns[self.current_step - 5]
+      five_day_return = self.returns[self.current_step - 4]
       return np.array([one_day_return, five_day_return])
 
 
@@ -75,12 +75,12 @@ class StockTradingEnv(gym.Env):
       elif action == 2:  # long
           self.position = 1
 
+      # Update the current step
+      self.current_step += 1
+
       #next_state
       next_state = self._get_next_state()
       self.current_state = next_state
-
-      # Update the current step
-      self.current_step += 1
 
       #reward
       reward = self._get_reward()
