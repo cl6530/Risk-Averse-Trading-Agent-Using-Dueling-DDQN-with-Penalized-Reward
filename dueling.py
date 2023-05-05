@@ -35,4 +35,3 @@ class DuelingDQN(nn.Module):
           q_values = value + (advantage - advantage.mean(dim=0, keepdim=True))
           
         return q_values
-        return q_values
