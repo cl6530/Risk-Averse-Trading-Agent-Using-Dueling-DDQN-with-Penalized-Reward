@@ -74,7 +74,7 @@ class StockTradingEnv(gym.Env):
       # FIXED: Modify this part to add transcation cost
       # Calculate reward based on the chosen action
       #one_day_return = self.returns[self.current_step]
-      if action == 0 or action == 2:  # short or long have same code
+      if action == 0:  # short
           self.position = -1
           self.current_step += 1
           self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
@@ -83,11 +83,11 @@ class StockTradingEnv(gym.Env):
           self.position = 0
           self.current_step += 1
           reward = 0
-      #elif action == 2:  # long
-      #    self.position = 1
-      #    self.current_step += 1
-      #    self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
-      #    reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
+      elif action == 2:  # long
+          self.position = 1
+          self.current_step += 1
+          self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
+          reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
 
       #next_state
       next_state = self._get_next_state()
