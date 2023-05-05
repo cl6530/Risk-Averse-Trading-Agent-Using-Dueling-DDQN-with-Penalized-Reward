@@ -7,15 +7,17 @@ class StockTradingEnv(gym.Env):
     Trading Simulator
     
     '''
-    def __init__(self, stock_returns, transaction_cost):
+    def __init__(self, stock_returns, transaction_cost, init_port):
         '''
         init methods, takes an array of returns as input
         '''
         super(StockTradingEnv, self).__init__()
 
-        self.transaction_cost = transaction_cost #this is a fix cost
+        self.transaction_cost = transaction_cost
+        self.init_port = init_port
+        self.current_portfolio = init_port
         self.returns = stock_returns
-        self.current_step = 5
+        self.current_step = 4
         self.position = 0
         try:
           self.current_state = self._get_next_state()
@@ -34,16 +36,16 @@ class StockTradingEnv(gym.Env):
       using 1-day and 5-day return as the next state
       '''
       one_day_return = self.returns[self.current_step]
-      five_day_return = self.returns[self.current_step - 5]
+      five_day_return = self.returns[self.current_step - 4]
       return np.array([one_day_return, five_day_return])
 
-
+    
     def _get_reward(self):
       '''
-      calculate reward
-      when posiiton is long, use 1 day return as reward
-      when position is short, use negative 1 day return as reward
-      FIXME: modify this function for experiment
+      #calculate reward
+      #when posiiton is long, use 1 day return as reward
+      #when position is short, use negative 1 day return as reward
+      #FIXME: modify this function for experiment
       '''
       one_day_return = self.returns[self.current_step]
       if self.position == 1:
@@ -52,6 +54,7 @@ class StockTradingEnv(gym.Env):
         return -one_day_return
       else:
         return 
+    
 
     def step(self, action):
       ''' 
@@ -68,24 +71,30 @@ class StockTradingEnv(gym.Env):
 
       # Calculate reward based on the chosen action
 
-      # FIXME: Modify this part to add transcation cost
-      one_day_return = self.returns[self.current_step]
-      if action == 0:  # short
+      # FIXED: Modify this part to add transcation cost
+      # Calculate reward based on the chosen action
+      #one_day_return = self.returns[self.current_step]
+      if action == 0 or action == 2:  # short or long have same code
           self.position = -1
-          reward = -one_day_return - self.transaction_cost
+          self.current_step += 1
+          self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
+          reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
       elif action == 1:  # stay
           self.position = 0
+          self.current_step += 1
           reward = 0
-      elif action == 2:  # long
-          self.position = 1
-          reward = one_day_return - self.transaction_cost
+      #elif action == 2:  # long
+      #    self.position = 1
+      #    self.current_step += 1
+      #    self.current_portfolio *= ((1 + self._get_reward()) * (1 - self.transaction_cost)) 
+      #    reward = self.current_portfolio - self.init_port  # Subtract the initial portfolio value to get the reward
 
       #next_state
       next_state = self._get_next_state()
       self.current_state = next_state
 
       # Update the current step
-      self.current_step += 1
+      #self.current_step += 1
 
       #reward
       #reward = self._get_reward()
