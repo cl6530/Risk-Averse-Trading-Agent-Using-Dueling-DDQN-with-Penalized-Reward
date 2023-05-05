@@ -7,12 +7,16 @@ class StockTradingEnv(gym.Env):
     Trading Simulator
     
     '''
-    def __init__(self, stock_returns):
+    def __init__(self, stock_returns, transaction_cost, init_port):
         '''
         init methods, takes an array of returns as input
         '''
         super(StockTradingEnv, self).__init__()
 
+        self.transaction_cost = transaction_cost
+        self.init_port = init_port
+        self.current_portfolio = init_port
+        self.portfolio_history = [init_port, init_port]  # Add portfolio_history
         self.returns = stock_returns
         self.current_step = 4
         self.position = 0
@@ -36,13 +40,13 @@ class StockTradingEnv(gym.Env):
       five_day_return = self.returns[self.current_step - 4]
       return np.array([one_day_return, five_day_return])
 
-
+    
     def _get_reward(self):
       '''
-      calculate reward
-      when posiiton is long, use 1 day return as reward
-      when position is short, use negative 1 day return as reward
-      FIXME: modify this function for experiment
+      #calculate reward
+      #when posiiton is long, use 1 day return as reward
+      #when position is short, use negative 1 day return as reward
+      #FIXME: modify this function for experiment
       '''
       one_day_return = self.returns[self.current_step]
       if self.position == 1:
@@ -51,6 +55,7 @@ class StockTradingEnv(gym.Env):
         return -one_day_return
       else:
         return 0
+    
 
     def step(self, action):
       ''' 
@@ -67,23 +72,50 @@ class StockTradingEnv(gym.Env):
 
       # Calculate reward based on the chosen action
 
-      # FIXME: Modify this part to add transcation cost
+      # FIXED: Modify this part to add transcation cost
+      # Calculate reward based on the chosen action
+      #one_day_return = self.returns[self.current_step]
       if action == 0:  # short
-          self.position = -1
+          
+          if self.position != -1:
+             self.position = -1
+             self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) * (1 - self.transaction_cost)
+          else:
+             self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) 
+
+          self.portfolio_history.append(self.current_portfolio)  # Add current_portfolio to portfolio_history
+
       elif action == 1:  # stay
-          self.position = 0
+          if self.position != 0:
+             self.position = 0
+             self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) * (1 - self.transaction_cost)
+          else:
+             pass
+          self.portfolio_history.append(self.current_portfolio)  # Add current_portfolio to portfolio_history
+
       elif action == 2:  # long
-          self.position = 1
-
-      # Update the current step
-      self.current_step += 1
-
+          if self.position != 1:
+             self.position = 1
+             self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) * (1 - self.transaction_cost)
+          else:
+             self.current_portfolio = (self.current_portfolio * (1 + self._get_reward())) 
+          self.portfolio_history.append(self.current_portfolio)  # Add current_portfolio to portfolio_history
+      
+      # Calculate reward based on portfolio_history
+      current_portfolio = self.current_portfolio
+      previous_portfolio = self.portfolio_history[-2]
+      reward = (current_portfolio - previous_portfolio) / previous_portfolio
+      
+      
       #next_state
       next_state = self._get_next_state()
       self.current_state = next_state
 
+      # Update the current step
+      self.current_step += 1
+
       #reward
-      reward = self._get_reward()
+      #reward = self._get_reward()
 
       # Check if the episode is done (reached the end of the stock prices data)
       done = self.current_step >= len(self.returns) - 1
