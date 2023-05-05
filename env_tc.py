@@ -53,7 +53,7 @@ class StockTradingEnv(gym.Env):
       elif self.position == -1:
         return -one_day_return
       else:
-        return 
+        return 0
     
 
     def step(self, action):
