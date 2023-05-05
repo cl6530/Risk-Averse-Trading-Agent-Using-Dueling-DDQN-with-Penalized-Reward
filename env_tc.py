@@ -16,7 +16,7 @@ class StockTradingEnv(gym.Env):
         self.transaction_cost = transaction_cost
         self.init_port = init_port
         self.current_portfolio = init_port
-        self.portfolio_history = [init_port]  # Add portfolio_history
+        self.portfolio_history = [init_port, init_port]  # Add portfolio_history
         self.returns = stock_returns
         self.current_step = 4
         self.position = 0
