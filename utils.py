@@ -24,15 +24,16 @@ def select_action(state,epsilon,action_space,policy_net,device):
     an action
     '''
 
-    sample = random.random()
+    sample = random.random()# Generate a random number
     if sample > epsilon:
         with torch.no_grad():
-            pred = policy_net(torch.tensor(state.astype(np.float32),device=device))
-            return pred.max(0)[1]
+            pred = policy_net(torch.tensor(state.astype(np.float32),device=device))# Make a prediction using the policy network
+            return pred.max(0)[1]# Return the action that has the maximum value
     else:
+         # Sample a random action from the action space and return it
         return torch.tensor([[action_space.sample()]], device=device, dtype=torch.long)
     
-
+# Define a named tuple called 'Transition'
 Transition = namedtuple('Transition',
                         ('state', 'action', 'next_state', 'reward'))
 
@@ -40,17 +41,17 @@ class ReplayMemory(object):
     '''
     Replay buffer for DDQN
     '''
-    def __init__(self, capacity):
+    def __init__(self, capacity):# Initialize the replay memory with a certain capacity
         self.memory = deque([], maxlen=capacity)
 
-    def push(self, *args):
+    def push(self, *args): # Define a method for adding a transition to the memory
         """Save a transition"""
         self.memory.append(Transition(*args))
 
-    def sample(self, batch_size):
+    def sample(self, batch_size):# Define a method for sampling a batch of transitions from the memory
         return random.sample(self.memory, batch_size)
 
-    def __len__(self):
+    def __len__(self):# Define a method for getting the length of the memory
         return len(self.memory)
 
 def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH_SIZE = 1024, GAMMA = 0.9):
@@ -70,14 +71,14 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH
     9.dueling: whether or not the network uses a dueling structure, default FALSE
     '''
 
-    if len(memory) > BATCH_SIZE:
-      transitions = memory.sample(BATCH_SIZE)
+    if len(memory) > BATCH_SIZE: # If the size of the memory is larger than the batch size
+      transitions = memory.sample(BATCH_SIZE)# Sample a batch of transitions from the memory
     else:
-      transitions = memory.sample(len(memory))
+      transitions = memory.sample(len(memory)) # Sample all transitions from the memory
     
     batch = Transition(*zip(*transitions))
 
-
+     # Prepare the batches of states, actions, rewards, and next states
     state_batch = torch.stack(batch.state)
     action_batch = torch.stack(batch.action)
     reward_batch = torch.stack(batch.reward)
@@ -86,10 +87,11 @@ def optimize_model(memory,optimizer,policy_net,target_net,device,criterion,BATCH
 
     next_state_values = torch.zeros(len(next_state_batch), device=device)
     with torch.no_grad():
-        next_state_values = target_net(next_state_batch).max(1)[0]
+        next_state_values = target_net(next_state_batch).max(1)[0]# Calculate the maximum Q-value for the next states using the target network
 
-
+     # Compute the expected Q-values
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
+    # Compute the loss between the current Q-values and the expected Q-values
     loss = criterion(state_action_values.float(), expected_state_action_values.unsqueeze(1).float())
 
     # Optimize the model
@@ -116,10 +118,10 @@ def get_data(drive_path = False):
         df = pd.read_csv(filename, index_col=None, header=0)
         li.append(df)
 
-    df = pd.concat(li, axis=0, ignore_index=True)
-    df['Date'] = pd.to_datetime(df['Date'])
-    df['Close'] = df['Close'].str.replace(',','').astype(float)
+    df = pd.concat(li, axis=0, ignore_index=True)# Concatenate all DataFrames in the list
+    df['Date'] = pd.to_datetime(df['Date'])# Convert the 'Date' column to datetime
+    df['Close'] = df['Close'].str.replace(',','').astype(float)# Clean the 'Close' column and convert it to float
     df.set_index('Date',inplace=True)
-    prices = df.sort_values(by = 'Date')
-    returns = prices['Close'].pct_change()[1:]
+    prices = df.sort_values(by = 'Date')# Sort the DataFrame by date
+    returns = prices['Close'].pct_change()[1:]# Calculate the percentage change in the 'Close' column
     return returns
